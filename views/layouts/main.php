@@ -35,7 +35,34 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    echo Nav::widget([
+	$menuItems = [];
+	$menuItems [] = ['label' => 'Главная', 'url' => ['/site/index']];
+	if(Yii::$app->user->isGuest){
+		$menuItems[] = ['label' => 'Регистрация', 'url' => ['/site/reg']];
+		$menuItems[] = ['label' => 'Авторизация', 'url' => ['/site/login']];
+	} else{
+		if(Yii::$app->user->identity->admin == 1) {
+			$menuItems[] = ['label' => 'ЛК администратора', 'url' => ['/admin/index']];
+			}
+	    $menuItems[] = ['label' => 'ЛК пользователя', 'url' => ['/lk/index']];
+		$menuItems[] = ['label' => 'ЛК администратора', 'url' => ['/admin/index']];
+		$menuItems[] = (
+		'<li>'
+                . Html::beginForm(['/site/logout'], 'post')
+                . Html::submitButton(
+                    'Выход (' . Yii::$app->user->identity->username . ')',
+                    ['class' => 'btn btn-link logout']
+                )
+                . Html::endForm()
+                . '</li>'
+            );
+	} 
+	
+	echo Nav::widget([
+        'options' => ['class' => 'navbar-nav navbar-right'],
+        'items' => $menuItems,
+		]);
+/*      echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Главная', 'url' => ['/site/index']],
@@ -54,8 +81,9 @@ AppAsset::register($this);
                 . Html::endForm()
                 . '</li>'
             )
-        ],
-    ]);
+			
+		],
+    ]);  */
     NavBar::end();
     ?>
 
