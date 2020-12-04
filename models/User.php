@@ -2,55 +2,84 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use Yii;
+
+/**
+ * This is the model class for table "user".
+ *
+ * @property int $id
+ * @property string $fio
+ * @property string $username
+ * @property string $email
+ * @property string $password
+ * @property int $admin
+ *
+ * @property Request[] $requests
+ */
+class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
-
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'user';
+    }
 
     /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['fio', 'username', 'email', 'password', 'admin'], 'required'],
+            [['admin'], 'integer'],
+            [['fio'], 'string', 'max' => 255],
+            [['username', 'email', 'password'], 'string', 'max' => 100],
+            [['fio'], 'unique'],
+            [['username'], 'unique'],
+            [['email'], 'unique'],
+            [['password'], 'unique'],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'fio' => 'ФИО',
+            'username' => 'Username',
+            'email' => 'Email',
+            'password' => 'Пароль',
+            'admin' => 'Admin',
+        ];
+    }
+
+    /**
+     * Gets query for [[Requests]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getRequests()
+    {
+        return $this->hasMany(Request::className(), ['idUser' => 'id']);
+    }
+	
+#################
+//Реализация интерфейса пользователя
+##################
+	
+	   /**
      * {@inheritdoc}
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+		return self::findOne($id);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function findIdentityByAccessToken($token, $type = null)
-    {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
-    }
-
-    /**
+	    /**
      * Finds user by username
      *
      * @param string $username
@@ -58,40 +87,9 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+		return self::find()->where(['username' => $username])->one();
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAuthKey()
-    {
-        return $this->authKey;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function validateAuthKey($authKey)
-    {
-        return $this->authKey === $authKey;
-    }
-
-    /**
+	    /**
      * Validates password
      *
      * @param string $password password to validate
@@ -101,4 +99,42 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     {
         return $this->password === $password;
     }
+	
+	    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+#################################
+	
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+
+       // return null;
+    }
+
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAuthKey()
+    {
+      //  return $this->authKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateAuthKey($authKey)
+    {
+        //return $this->authKey === $authKey;
+    }
+
 }
